@@ -16,9 +16,6 @@ class B2BMain
         while ($arGroup = $result->fetch()) {
             $b2bGroupId = $arGroup['ID'];
         }
-        print_r(234);
-        print_r($b2bGroupId);
-        print_r($arUserGroups);
         if (!$USER->IsAuthorized() || !in_array($b2bGroupId, $arUserGroups)) {
             return false;
         }
