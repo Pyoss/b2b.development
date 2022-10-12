@@ -6,8 +6,8 @@
 ?>
 
 <div class="personal-preview">
-    <img height=80px width=72px src="/src/figma-images/no_picture.png" class="personal-preview__portrait">
+    <img height=90px width=84   px src="/src/figma-images/no_picture.png" class="personal-preview__portrait">
     <div class="personal-preview__name"><?=$arResult['NAME']?> <?=$arResult['LAST_NAME']?></div>
     <div class="personal-preview__company"><?=$arResult['COMPANY_DATA']['name']?></div>
-    <div class="exit"></div>
+    <a href="?logout=true"><div class="exit"></div></a>
 </div>

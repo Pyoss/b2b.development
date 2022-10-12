@@ -1,0 +1,40 @@
+.changepass{
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.changepass__title {
+    font-size: 1.2em;
+    padding: 1em;
+    text-align: center;
+    font-weight: bold;
+}
+
+.changepass__field {
+    font-size: 1.1em;
+    padding: .3em;
+    text-align: center;
+}
+
+.changepass__submit {
+    margin: 1em 0;
+}
+
+.changepass__field-content{
+    text-align: center;
+}
+
+.changepass__field-content input[type='text'],
+.changepass__field-content input[type='password'] {
+    border-radius: .7em;
+    border: 1px solid #aaaaaa;
+    margin: .3em;
+    padding: 2px 10px;}
+
+
+.changepass__field.checkword{
+    display: none;
+}

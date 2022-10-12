@@ -34,7 +34,7 @@ foreach ($arResult["SECTIONS"] as $arSection) {
         echo '<i class="section-input__arrow"></i><div class="section-input__group">';
     }
     $count = $arParams["COUNT_ELEMENTS"] && $arSection["ELEMENT_CNT"] ? "&nbsp;(" . $arSection["ELEMENT_CNT"] . ")" : "";
-    $link = '<div class="section-input" data-value="' . $arSection["ID"] . '">' . '<span>' . $arSection["NAME"] . $count . '</span>';
+    $link = '<div class="section-input" data-value="' . $arSection["ID"] . '">' . '<span>' . $arSection["NAME"] . '</span>';
     $lastDepth = $arSection['DEPTH_LEVEL'];
     echo $link;
 }?>

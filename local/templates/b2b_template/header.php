@@ -12,17 +12,33 @@
     $APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH . "/normalize.css/");
     $APPLICATION->SetAdditionalCSS("/bitrix/css/main/font-awesome.css");
 
+
+    use \Bitrix\Conversion\Internals\MobileDetect;
+
+    $detect = new MobileDetect;
+    if($detect->isMobile())
+    {
+        ?> Приносим извинения, мобильная версия сайта находится в разработке.<?
+        die();
+    }
+
     use Bitrix\Main\Page\Asset;
     use DJ\B2B\Applications\B2BMain;
 
     Asset::getInstance()->addJs(SITE_TEMPLATE_PATH . "/js/1c_api.js");
+    Asset::getInstance()->addJs(SITE_TEMPLATE_PATH . "/js/jquery-3.6.0.min.js");
+    Asset::getInstance()->addJs(SITE_TEMPLATE_PATH . "/js/owl.carousel.js");
+
+    $APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH . "/css/owl.carousel.min.css");
+    $APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH . "/css/owl.theme.default.min.css");
+
     $APPLICATION->ShowHead();
     CModule::IncludeModule('dj.b2b');
     // Здесь мы проверяем доступ пользователя к определенной группе. Если пользователя нет в группе
     // оптовых клиентов или пользователь не зарегистрирован - происходит редирект на страницу авторизации
     global $USER;
     if (!B2BMain::isClient($USER) && !B2BMain::isManager($USER)) {
-        LocalRedirect('https://' . SITE_SERVER_NAME . '/auth/');
+        LocalRedirect('https://' . SITE_SERVER_NAME . '/auth/?path=' . explode('/', $_SERVER['REQUEST_URI'])[1]);
     }
     ?>
     <div style="display: none" id="panel"><?php
@@ -71,17 +87,12 @@
         ],
         false
     );
-    if (B2BMain::isClient($USER)):?>
-        <div class="manager-block">
-            <span class="manager-block__title">Ваш менеджер</span>
-            <div class="manager-block__snippet">
-                <img width='70px' height='auto' src="/src/figma-images/halin.png" class="manager-block__portrait">
-                <span class="manager-block__name">Алексей Халин</span>
-            </div>
-            <span>halin@dobriy-jar.ru</span>
-            <span>8 800 555 55 55</span>
-            <span>+7 (4722) 20-55-33</span>
-        </div>
-    <? endif; ?>
+    if (B2BMain::isClient($USER)):
+        $APPLICATION->IncludeComponent(
+            "dj.b2b:b2b.header.manager",
+            ".default",
+            array(),
+            false
+        );endif; ?>
 </div>
 <main>

@@ -8,9 +8,10 @@
 /** @global CDatabase $DB */
 /** @global CUser $USER */
 /** @global CMain $APPLICATION */
-use Bitrix1C\Api;
+use DJ\B2B\Bitrix1C\Api;
 use DJ\B2B\Applications\B2BMain;
 
+\Bitrix\Main\Loader::includeModule('dj.b2b');
 
 if ($this->StartResultCache(false, $USER -> GetID())){
 
@@ -22,5 +23,7 @@ if ($this->StartResultCache(false, $USER -> GetID())){
     $arResult['NAME'] =$arResult['DATA']['NAME'];
     $arResult['LAST_NAME'] =$arResult['DATA']['LAST_NAME'];
     $arResult['COMPANY_DATA'] = json_decode($api1C -> GetCompany(), true);
+    $api1C -> UpdateManager($USER -> GetID(), $arResult['COMPANY_DATA']['manager']);
+
     $this -> includeComponentTemplate();
 }

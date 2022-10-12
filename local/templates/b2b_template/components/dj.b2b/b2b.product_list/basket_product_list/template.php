@@ -10,7 +10,15 @@ Asset::getInstance()->addJs(SITE_TEMPLATE_PATH . "/js/product_list.js");
 
     <h1 class="section__title">Корзина</h1>
     <div class="product-table__wrapper b2b-block">
-        <table class="product-table">
+        <table class="product-table"><colgroup id="colgroup_fixed">
+                <col style="width: 105px;" class="article">
+                <col style="width: 140px;" class="picture">
+                <col style="width: 415px;" class="name">
+                <col style="width: 85px;" class="price">
+                <col style="width: 85px;" class="retail_price">
+                <col style="width: 165px;" class="quantity">
+                <col style="width: 105px;" class="sum">
+            </colgroup>
             <thead>
             <tr class="product-table__row--header">
                 <?
@@ -28,7 +36,6 @@ Asset::getInstance()->addJs(SITE_TEMPLATE_PATH . "/js/product_list.js");
             <span class="sum-value" id="order-sum"><?=$arResult['SUM']?>&nbsp₽</span>
         </div>
     </div>
-<script>
-    product_list.display_properties = <?= \CUtil::PhpToJSObject($arParams['PROPERTY_ID'])?>
+<script defer>
     product_list.page = 'basket'
 </script>

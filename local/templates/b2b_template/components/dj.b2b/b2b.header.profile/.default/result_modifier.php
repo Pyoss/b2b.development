@@ -4,3 +4,9 @@
  * @var $arResult
  * @var $arParams
  */
+
+if ($_GET['logout'] == 'true'){
+    global $USER;
+    $USER -> Logout();
+    LocalRedirect('/auth/');
+}

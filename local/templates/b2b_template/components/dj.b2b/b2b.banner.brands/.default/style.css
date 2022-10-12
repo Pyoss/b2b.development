@@ -1,0 +1,16 @@
+.banners {
+    height: 54px;
+    background-color: #BDBDBD;
+    display: flex;
+    justify-content: center;
+    gap: 35px;
+    /* background-repeat: no-repeat; */
+}
+
+.banners__item {
+    height: 54px;
+    width: 70px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}

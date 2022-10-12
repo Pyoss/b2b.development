@@ -28,7 +28,7 @@ body {
 
 main {
     padding-left: 230px;
-    padding-top: 90px;
+    padding-top: 70px;
 }
 .header {
     /*margin-top: 39px;*/
@@ -41,6 +41,7 @@ main {
     position: absolute;
     top: 0;
     width: 100%;
+    z-index: 100;
 }
 
 .header.fixed {
@@ -49,7 +50,6 @@ main {
     animation-duration: 0.5s;
     animation-fill-mode: forwards;
     position: fixed;
-    z-index: 1;
 }
 
 @keyframes fix {
@@ -76,7 +76,7 @@ main {
     position: fixed;
     height: 100%;
     width: 230px;
-    z-index: 1;
+    z-index: 300;
     top: 0;
     left: 0;
     overflow-x: hidden;
@@ -88,14 +88,15 @@ main {
     width: 160px;
     background: center/contain no-repeat url("/src/figma-images/logo.svg");
     display: block;
-    margin: 15px auto
+    margin: 15px auto;
+    position: relative;
 }
 
 .personal-preview {
     background-color: #4F4F4F;
-    min-height: 80px;
+    min-height: 90px;
     position: relative;
-    padding: 0 10px 0px 0;
+    padding: 0 10px 0 0;
     box-sizing: content-box;
 }
 
@@ -116,20 +117,24 @@ main {
 
 .personal-preview__name {
     color: white;
-    padding: 10px 50px 0 90px;
+    padding: 10px 0 0 90px;
     word-spacing: 1000px;
     font-size: 14px;
+    word-wrap: break-word;
 }
 
 .personal-preview__company {
     color:#C2C9D1;
     font-size: 12px;
     padding: 10px 0 10px 90px;
+    word-wrap: break-word;
 }
 
 .manager-block {
     padding-left: 30px;
     color: white;
+    position: absolute;
+    bottom: 50px;
 }
 
 .sidebar__arrow{
@@ -163,7 +168,8 @@ main {
 }
 
 .section {
-    margin: 70px 117px 109px 35px;
+    margin: 70px auto 109px auto;
+    width: 1150px;
 }
 
 .section h1{
@@ -196,30 +202,19 @@ main {
     flex-grow: 2;
 }
 
-.orders-list {
-    min-width: 500px;
-}
-
-.orders-list table {
-    width:100%;
-    margin-top: 29px;
-}
-
-.orders-list table th{
-    background-color: #333333;
-    color: white;
-    font-weight: normal;
-    font-size: 14px;
-    line-height: 28px;
-}
-
-.orders-list td {
-    text-align: center;
-}
-
 .video-wrapper {
-    width: 500px;
+    width: 475px;
     height: 250px;
     background-color: #BDBDBD;
     margin-top: 29px;
+}
+
+.tutorial-block.b2b-block {
+    width: 540px;
+}
+
+@media (max-height: 600px) {
+    .manager-block {
+        display: none;
+    }
 }

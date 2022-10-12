@@ -1,3 +1,47 @@
+
+.orders-list a {
+    color: black;
+    text-decoration: none;
+}
+
+.order-item__status {
+    background-color: #828282;
+    color: white;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 5px;
+}
+
+
+.orders-list.b2b-block {
+    width: auto;
+    padding-right: 19px;
+    padding-left: 30px;
+}
+
+.orders-list table {
+    width: 100%;
+    margin-top: 29px;
+    border-collapse: collapse;
+}
+
+.orders-list table th {
+    background-color: #333333;
+    color: white;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 40px;
+    border-right: 1px solid white;
+}
+
 .orders-list td {
+    text-align: center;
     padding: 10px;
+    font-size: 14px;
+    border-bottom: 2px solid #828282;
+    border-right: 1px solid white;
+}
+
+.orders-list tr:nth-child(even) td{
+    background-color: #E5E5E5;
 }

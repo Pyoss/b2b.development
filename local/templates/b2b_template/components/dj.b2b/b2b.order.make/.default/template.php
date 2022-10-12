@@ -16,7 +16,8 @@
             "COMPONENT_TEMPLATE" => "basket_product_list",
             "PROPERTY_ID" => array(
                 0 => "9",
-            )
+            ),
+            'ORDER_ID' => $arParams['ORDER_ID']
         ),
         $component
     );
@@ -39,6 +40,9 @@
             <?php endforeach; ?>   </div>
         </div>
         <?php foreach ($arResult['PROPS'] as $prop):
+            if ($prop['CODE'] === 'order_guid' || $prop['NAME'] === 'Рассчитанный тариф СДЭК'){
+                continue;
+            }
             switch ($prop['TYPE']):
                 case 'ENUM':
                     ?>

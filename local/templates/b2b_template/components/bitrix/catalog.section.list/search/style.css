@@ -5,6 +5,7 @@
     background-color: #F2F2F2;
     cursor: pointer;
     padding: 10px;
+    color: black;
 }
 
 .section-input:not(*:first-child){

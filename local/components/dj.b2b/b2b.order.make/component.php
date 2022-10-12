@@ -17,12 +17,13 @@ use Bitrix\Main\Context,
     Bitrix\Sale\Delivery,
     Bitrix\Sale\Fuser,
     Bitrix\Sale\PaySystem,
-    Bitrix1C\Api;
+    DJ\B2B\Bitrix1C\Api;
 
 global $USER;
 
 Bitrix\Main\Loader::includeModule("sale");
 Bitrix\Main\Loader::includeModule("catalog");
+Bitrix\Main\Loader::includeModule("dj.b2b");
 
 $siteId = Context::getCurrent()->getSite();
 $currencyCode = CurrencyManager::getBaseCurrency();
@@ -32,7 +33,9 @@ $order = Order::create($siteId, $USER->isAuthorized() ? $USER->GetID() : 539);
 $order->setPersonTypeId(3);
 $order->setField('CURRENCY', $currencyCode);
 $basket = Basket::loadItemsForFUser(Fuser::getId(), $siteId);
-
+if ($basket -> isEmpty()){
+    LocalRedirect('/order/empty.php');
+}
 $request = Context::getCurrent()->getRequest();
 $method = $request->getServer()->getRequestMethod();
 if ($method === 'GET') {
@@ -71,6 +74,10 @@ if ($method === 'GET') {
         'DELIVERY_NAME' => $service['NAME'],
     ));
 
+    if ($service['NAME'] == 'Другое (укажите в комментариях)'){
+        $service['NAME'] = 'Указана в комментариях';
+    }
+    DJMain::displayString($service['NAME']);
     $paymentCollection = $order->getPaymentCollection();
     $payment = $paymentCollection->createItem();
     $paySystemService = PaySystem\Manager::getObjectById(1);
@@ -100,8 +107,8 @@ if ($method === 'GET') {
             );
         }
         $arOrder['bucket'] = $basketArray;
-        $arOrder['city'] = 'Москва';
-        $arOrder['comment'] = $comment;
+        $arOrder['city'] = '';
+        $arOrder['comment'] = $service['NAME'] . ' : ' . $comment;
         $arOrder['delivery'] = $service['NAME'];
         $arOrder['package'] = $packageString;
         $arOrder['manager'] = $api -> getClientManager()['guid'];
@@ -110,7 +117,6 @@ if ($method === 'GET') {
         $response = $api -> CreateOrder($arOrder);
         if ($response -> getResponseCode() == '201'){
             $order_guid = $response -> getResponseBody();
-            print_r($order_guid);
             $prop_guid = $propertyCollection->getItemByOrderPropertyCode('order_guid');
             $prop_guid->setValue($order_guid);
             $order -> save();
@@ -124,6 +130,10 @@ if ($method === 'GET') {
                 </div>
             </div>
             <?php
+            mail('opt@dobriy-jar.ru', 'Новый заказ номер ' . $order -> getId(), 'Создан новый заказ номер ' . $order -> getId());
+        } else {
+            $error = $response -> getResponseBody();
+            print_r($error);
         }
 
 

@@ -1,0 +1,30 @@
+.logform {
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.logform__title {
+    font-size: 1.2em;
+    padding: 1em;
+    text-align: center;
+    font-weight: bold;
+}
+
+.logform__field {
+    font-size: 1.1em;
+    padding: .3em;
+}
+
+.logform__submit {
+    margin: 1em 0;
+}
+
+.logform__field-content input[type='text'],
+.logform__field-content input[type='password'] {
+    border-radius: .7em;
+    border: 1px solid #aaaaaa;
+    margin: .3em;
+    padding: 2px 10px;}

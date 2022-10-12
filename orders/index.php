@@ -1,6 +1,8 @@
 <?php
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
+$APPLICATION ->SetTitle('Заказы');
 ?>
+<div class="section">
 <?php
 $APPLICATION->IncludeComponent(
     "dj.b2b:b2b.orders",
@@ -29,7 +31,7 @@ $APPLICATION->IncludeComponent(
     )
 );
 ?>
-
+</div>
 <?php
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");
 ?>

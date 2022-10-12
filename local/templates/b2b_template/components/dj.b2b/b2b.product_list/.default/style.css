@@ -29,7 +29,7 @@ main {
 .product-filter__list {
     display: flex;
     flex-flow: row wrap;
-    justify-content: left;
+    justify-content: space-around;
     align-items: center;
     gap: 30px;
 }
@@ -43,7 +43,7 @@ main {
     background-color: #F2F2F2;
     border: 1px solid #BDBDBD;
     line-height: 30px;
-    width: 280px;
+    width: 300px;
     font-size: 14px;
     padding-left: 16px;
     display: block;
@@ -54,9 +54,21 @@ main {
     margin-top: 19px;
 }
 
+
 .product-table, .offer-table {
     font-size: 12px;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.offer-table {
+    width: auto;
+}
+
+.price, .retail-price, .margin {
+    text-align: center;
 }
 
 .product-table__title {
@@ -65,7 +77,8 @@ main {
 
 .product-table__row--header td {
     font-weight: bold;
-    color: rgba(0, 0, 0, 0.5);
+    color: white;
+    background-color: #ff6100 !important;
 }
 
 .product-table__cell {
@@ -122,6 +135,7 @@ main {
 .product-table__cell.picture {
     padding: 5px 15px 5px 15px;
     text-align: center;
+    background-color: white;
 }
 
 .amount-input {
@@ -176,11 +190,6 @@ tbody.section-hidden tr:not(tr:first-child) {
     overflow: hidden;
     visibility: collapse;
 }
-
-.picture, .article, .price, .stock, .retail-price, .sum {
-    width: 105px;
-}
-
 .picture, .name {
     cursor: pointer;
 }
@@ -189,13 +198,6 @@ tbody.section-hidden tr:not(tr:first-child) {
     padding: 0 10px;
 }
 
-.name {
-    width: 450px;
-}
-
-.quantity {
-    width: 200px;
-}
 
 .stock-amount {
     border-radius: 5px;
@@ -247,6 +249,7 @@ tbody.section-hidden tr:not(tr:first-child) {
     bottom: 0;
     right: 0;
     background-color: rgba(0, 0, 0, 0.3);
+    z-index: 400;
 }
 
 .details {
@@ -256,12 +259,15 @@ tbody.section-hidden tr:not(tr:first-child) {
     width: 977px;
     height: 70vh;
     overflow-Y: scroll;
+    gap: 20px;
 }
 
 .details__image-wrapper {
     width: 50%;
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 20px;
 }
 
 .details__text-wrapper {
@@ -341,8 +347,67 @@ img.details__image {
     top: -40px;
     cursor: pointer;
     pointer-events: none;
+    z-index: 400;
 }
 
 .picture img {
     pointer-events: none;
+}
+
+.section.product-list {
+    margin-top: 0;
+}
+
+.product-filter.b2b-block {
+    background-color: #ff6100;
+    position: sticky;
+    top: 0;
+    color: white;
+    margin-left: 27px;
+    margin-right: 44px;
+    padding-top: 10px;
+    padding-bottom: 20px;
+    z-index: 11;
+}
+
+.product-filter.b2b-block.fixed {
+    animation-name: fix-form;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+}
+
+.product-table__sum {
+    position: relative;
+    top: 25px;
+}
+
+.sum-title {
+    font-weight: bold;
+    font-size: 27px;
+}
+.product-table__row--header {
+    position: sticky;
+    background-color: #ff6100;
+    top: 84px;
+    z-index: 1
+}
+
+.product-table__row--header.fixed {
+    animation-name: fix-head;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+    z-index: 1;
+}
+
+@keyframes fix-head {
+    from {top: 84px}
+    to {top: 154px}
+}
+
+@keyframes fix-form {
+    from {top: 0}
+    to {top: 70px}
+}
+.sum-value {
+    font-size: 20px;
 }

@@ -17,8 +17,9 @@ use Bitrix\Main\Context,
     Bitrix\Sale\Delivery,
     Bitrix\Sale\Fuser,
     Bitrix\Sale\PaySystem,
-    Bitrix1C\Api;
+    DJ\B2B\Bitrix1C\Api;
 
+\Bitrix\Main\Loader::includeModule('dj.b2b');
 $api = new Api();
 
 $parameters = [
@@ -40,7 +41,7 @@ while ($arOrder = $dbRes->fetch()) {
         $arOrder['1C_DATA'] = $orderData;
         $arOrder['1C_DATA']['sum'] = 0;
         foreach($arOrder['1C_DATA']['bucket'] as $item){
-            $arOrder['1C_DATA']['sum'] += $item['price'] * $item['quantity'];
+            $arOrder['1C_DATA']['sum'] += $item['price'];
         }
         $arOrders[] = $arOrder;
     }

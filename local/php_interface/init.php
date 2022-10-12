@@ -9,7 +9,5 @@ $CLASSES_DIR = $_SERVER['DOCUMENT_ROOT'] . '/local/classes/';
 
 // Тестируем необходимые классы (список не окончательный)
 require_once $CLASSES_DIR . 'main.php';
-require_once $CLASSES_DIR . 'Api1C/Api.php';
-require_once $CLASSES_DIR . 'Api1C/Request.php';
 
 

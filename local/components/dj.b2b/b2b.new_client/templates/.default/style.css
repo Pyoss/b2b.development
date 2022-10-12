@@ -1,0 +1,30 @@
+.section .hidden {
+    display: none
+}
+
+.client-data {
+    padding: 10px;
+}
+
+.client-data__row {
+    padding: 5px 0;
+}
+
+.client-error {
+    padding: 10px;
+    color: red;
+}
+
+.client-data__title {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+
+.client-input {
+    padding: 10px;
+}
+
+.client-input__row {
+    padding: 5px 0;
+}

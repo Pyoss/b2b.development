@@ -21,7 +21,6 @@ class B2BDetails
         return $this->ajax_result;
     }
 
-
     public function __construct($product_id)
     {
         if (!\CModule::IncludeModule('iblock')){
@@ -40,6 +39,9 @@ class B2BDetails
 
     private function getElementData($product_id): array {
         $arElementData = ElementTable::GetByID($product_id) -> fetch();
+        if (!$arElementData['DETAIL_PICTURE']){
+            $arElementData['DETAIL_PICTURE'] = $arElementData['PREVIEW_PICTURE'];
+        }
         if ($arElementData['DETAIL_PICTURE']){
             $arElementData['DETAIL_PICTURE_PATH'] = \CFile::GetPath($arElementData['DETAIL_PICTURE']);
         }

@@ -7,7 +7,6 @@
  */
 ?>
 
-<div class="section">
     <?php
     $APPLICATION->IncludeComponent(
         "dj.b2b:b2b.product_list",
@@ -17,6 +16,7 @@
             "PROPERTY_ID" => array(
                 0 => "9",
             ), "ORDER_ID" => $arParams['ORDER_ID'],
+            "ORDER_DATA" => $arResult['ORDER_DATA']
         ),
         $component
     );
@@ -26,4 +26,3 @@
     DJMain::displayString($arResult);
     DJMain::displayString(\Bitrix\Main\Context::getCurrent()->getRequest());
     */ ?>
-</div>

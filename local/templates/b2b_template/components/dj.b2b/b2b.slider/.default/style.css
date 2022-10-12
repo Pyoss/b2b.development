@@ -1,0 +1,11 @@
+.slider {
+    width: 1150px;
+    height: 250px;
+    margin: 35px auto}
+
+
+.slider__slide {
+    width: 1150px;
+    height: 250px;
+    background-size: cover;
+}

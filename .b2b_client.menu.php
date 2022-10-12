@@ -15,6 +15,13 @@ $aMenuLinks = Array(
         ""
     ),
     Array(
+        "История заказов",
+        "/orders/",
+        Array(),
+        Array(),
+        ""
+    ),
+    Array(
         "Счета",
         "/payments/",
         Array(),

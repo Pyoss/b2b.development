@@ -5,9 +5,15 @@ if ($_GET['AJAX']){
 } else {
     require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
     $arHide = array("HIDE_ICONS" => "N");
-}
+    $APPLICATION ->SetTitle('Каталог');
+    $APPLICATION->IncludeComponent(
+        'dj.b2b:b2b.slider',
+        '',
+        array(),
+        false);
+}?>
 
-$APPLICATION->IncludeComponent(
+<?php $APPLICATION->IncludeComponent(
 	"dj.b2b:b2b.product_list", 
 	".default", 
 	array(

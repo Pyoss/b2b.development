@@ -8,7 +8,7 @@ var ajax_basket = {
 
     },
 
-    delete: function(product_id, quantity){
+    delete: function(product_id){
         let arg_string = `&product_id=${product_id}`
         this.request('delete', arg_string)
 
@@ -40,11 +40,16 @@ var ajax_basket = {
 
     fixHeader: function (){
         BX('header').classList.add('fixed')
+
+        document.querySelector('.product-filter.b2b-block').classList.add('fixed')
+        document.querySelector('.product-table__row--header').classList.add('fixed')
         this.header_fixed = true;
     },
 
     releaseHeader: function(){
         BX('header').classList.remove('fixed')
+        document.querySelector('.product-table__row--header').classList.remove('fixed')
+        document.querySelector('.product-filter.b2b-block').classList.remove('fixed')
         this.header_fixed = false;
     },
 }

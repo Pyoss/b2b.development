@@ -5,6 +5,7 @@ namespace B2BAjax;
 use B2BAjax\B2BDetails,
     Bitrix\Sale\Order,
     Bitrix\Sale\Basket;
+use Bitrix\Iblock\ElementPropertyTable;
 
 class B2BCatalog
 {
@@ -13,6 +14,7 @@ class B2BCatalog
     private int $iblock = 2;
     private array $arBasketItems;
     private array $filters = [];
+    private $order_basket = false;
 
     public function __construct()
     {
@@ -22,7 +24,8 @@ class B2BCatalog
                 \Bitrix\Main\Context::getCurrent()->getSite());
         } else {
             $order = Order::load($_GET['order']);
-            $basket = $order -> getBasket();
+            $basket = $order->getBasket();
+            $this->order_basket = $basket;
         }
         $basketItems = $basket->getBasketItems();
         foreach ($basketItems as $item) {
@@ -41,6 +44,17 @@ class B2BCatalog
         ));
         while ($row = $obSearch->fetch()) {
             $arElements[] = $row['ITEM_ID'];
+        }
+        return $arElements;
+    }
+
+    private function brandFilter($brandId): array
+    {
+        $arElements = [];
+        $rsBrands = ElementPropertyTable::getList(['filter' => ['IBLOCK_PROPERTY_ID' => 10, 'VALUE' => $brandId],
+            'select' => ['IBLOCK_ELEMENT_ID']]);
+        while ($arBrand = $rsBrands->fetch()) {
+            $arElements[] = $arBrand['IBLOCK_ELEMENT_ID'];
         }
         return $arElements;
     }
@@ -92,8 +106,15 @@ class B2BCatalog
                 $arFilter,
                 false,
                 array('nTopCount' => $this->element_pagesize, 'nOffset' => $this->element_offset),
-                array('PROPERTY_ARTNUMBER', 'ID', 'NAME', 'PRICE_2', 'PRICE_3', 'QUANTITY', 'DETAIL_PICTURE', 'ACTIVE'));
+                array('PROPERTY_ARTNUMBER', 'PROPERTY_b2b_available',
+                    'ID', 'NAME', 'PRICE_2', 'PRICE_3', 'QUANTITY', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'ACTIVE'));
             while ($arProduct = $resProducts->fetch()) {
+                if (!$arProduct['DETAIL_PICTURE']) {
+                    $arProduct['DETAIL_PICTURE'] = $arProduct['PREVIEW_PICTURE'];
+                }
+                if ($arProduct['PROPERTY_B2B_AVAILABLE_VALUE'] === 'Нет') {
+                    $arProduct['HIDDEN'] = 'hidden';
+                }
                 if (\CCatalogSku::IsExistOffers($arProduct['ID'], 2)) {
                     $arOffers = \CCatalogSku::getOffersList($arProduct['ID'], 2);
                     $resOffers = \CIBlockElement::GetList(
@@ -120,6 +141,11 @@ class B2BCatalog
                         $arOffer['BASKET_QUANTITY'] = $this->arBasketItems[$arOffer['ID']] ?? 0;
                         if (in_array('basket', $this->filters)) {
                             if (in_array($arOffer['ID'], array_keys($this->arBasketItems))) {
+                                if ($this->order_basket) {
+                                    $basket_item = $this->order_basket->getExistsItem('catalog', $arOffer['ID']);
+
+                                    $arOffer['PRICE_3'] = $basket_item->getField('PRICE');
+                                }
                                 $arProduct['OFFERS'][] = $arOffer;
                             }
                         } else {
@@ -128,6 +154,14 @@ class B2BCatalog
                     }
                 } else {
                     $arProduct['OFFERS'] = 'N';
+
+                    if ($this->order_basket) {
+                        $basket_item = $this->order_basket->getExistsItem('catalog', $arProduct['ID']);
+                        $arProduct['PRICE_3'] = $basket_item->getPrice();
+                    }
+                    /*else if ($arProduct['QUANTITY'] < 1) {
+                        $arProduct['HIDDEN'] = 'hidden';
+                    }*/
                 }
                 $arProduct['DETAIL_PICTURE'] = $this->formatImage($arProduct['DETAIL_PICTURE']);
                 $arProduct['BASKET_QUANTITY'] = $this->arBasketItems[$arProduct['ID']] ?? 0;
@@ -158,20 +192,40 @@ class B2BCatalog
         $this->element_offset = (int)$_GET['offset'];
         $section_id = (int)$_GET['sections'];
         $search = $_GET['search'];
+        $brand = $_GET['brand'];
         $basket = $_GET['basket'];
         $order = $_GET['order'];
         \CModule::IncludeModule('iblock');
         $arSectionFilter = array();
 
         // Фильтруем ID элементов по запросу поиска
-        if ($search) {
-            $arElementsFilter = $this->searchFilter($search);
-        } else if ($basket) {
+        if ($basket) {
             $this->filters[] = 'basket';
             $arElementsFilter = $this->basketFilter();
         } else if ($order) {
             $this->filters[] = 'basket';
             $arElementsFilter = $this->basketFilter();
+        } else {
+
+            if ($search) {
+                $arElementsFilter = $this->searchFilter($search);
+                if (!$arElementsFilter) {
+                    echo '';
+                    die();
+                }
+            }
+            if ($brand) {
+                $arBrandFilter = $this->brandFilter($brand);
+                if ($arElementsFilter) {
+                    $arElementsFilter = array_intersect($arElementsFilter, $arBrandFilter);
+                } else {
+                    $arElementsFilter = $arBrandFilter;
+                }
+                if (!$arElementsFilter) {
+                    echo '';
+                    die();
+                }
+            }
         }
         $arSectionFilter['IBLOCK_ID'] = $this->iblock;
 

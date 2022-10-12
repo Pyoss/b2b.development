@@ -16,8 +16,8 @@ var product_list = {
     page: 'default',
     order_id: 0,
 
-
     validateCellInput: function (product_id, value) {
+        this.loading = true
         let row = BX('product-' + product_id)
         let max = parseInt(row.querySelector('.stock-amount').dataset.quantity)
         if (!value) {
@@ -37,63 +37,96 @@ var product_list = {
             ajax_basket.update(product_id, value)
             this.updateSum(product_id, value)
         } else {
-            console.log(row)
+            ajax_basket.delete(product_id)
             if (product_list.page === 'default') {
                 row.classList.remove('add')
                 this.updateSum(product_id, value)
-            } else {
-                let category_dom = row.parentNode
-                row.remove()
-                if (category_dom.children.length <= 1) {
-                    category_dom.remove()
-                }
+            } else if (product_list.page === 'basket') {
+                this.deleteUpwards(row)
             }
-            ajax_basket.delete(product_id)
         }
+        this.loading = false
     },
+
+    deleteUpwards(row) {
+        let category_dom
+        if (row.classList.contains('offer')) {
+            let productBody = row.parentNode;
+            if (row === productBody.firstChild && productBody.children.length > 1) {
+                let picture = row.querySelector('.picture');
+                BX.insertBefore(picture.cloneNode(true), productBody.children[1].querySelector('.name'))
+            }
+            row.remove()
+            if (productBody.children.length === 0) {
+                let product_dom = productBody.parentNode.parentNode.parentNode;
+                category_dom = product_dom.parentNode
+                product_dom.remove();
+                this.element_num--
+            }
+        } else {
+            category_dom = row.parentNode
+            row.remove()
+            this.element_num--
+        }
+        if (category_dom) {
+            if (category_dom.children.length <= 1) {
+                category_dom.remove()
+            }
+        }
+        if (this.element_num === 0) {
+            location.reload()
+        }
+    }
+    ,
 
     updateSum: function (product_id, quantity) {
         let sumDOM = BX("product-" + product_id).querySelector('.sum')
         let price = parseInt(BX("product-" + product_id).querySelector('.price').innerHTML)
         sumDOM.innerHTML = quantity ? parseInt(price * quantity) + '&nbsp₽' : ''
-    },
+    }
+    ,
 
     deleteItem: function (product_id) {
+        this.loading = true
+        ajax_basket.delete(product_id)
         let row = BX('product-' + product_id)
         if (product_list.page === 'default') {
             row.classList.remove('add')
             BX("product-" + product_id).querySelector('.quantity-input').value = 0
             this.updateSum(product_id, 0)
         } else {
-            let category_dom = row.parentNode
-            row.remove()
-            if (category_dom.children.length <= 1) {
-                category_dom.remove()
-            }
+            this.deleteUpwards(row)
         }
-        ajax_basket.delete(product_id)
-    },
+        this.loading = false
+    }
+    ,
 
     createBinds: function () {
-        BX.bindDelegate(this.tableDOM, 'click', {tagName: 'th', className: 'product-table__cell'}, function (event) {
+        BX.bindDelegate(this.tableDOM, 'click', {
+            tagName: 'th',
+            className: 'product-table__cell'
+        }, function (event) {
             BX.toggleClass(BX('offers-' + event.target.dataset.productId), ["collapsed", ""])
             BX.toggleClass(event.target, ['opened', ""])
         })
-        BX.bindDelegate(this.tableDOM, 'click', {className: 'amount-input__increment'}, function (event) {
-            let current_value = BX("product-" + event.target.dataset.productId).querySelector('.quantity-input').value
-            product_list.validateCellInput(event.target.dataset.productId, parseInt(current_value) + 1)
-        })
-        BX.bindDelegate(this.tableDOM, 'click', {className: 'amount-input__decrement'}, function (event) {
-            let current_value = BX("product-" + event.target.dataset.productId).querySelector('.quantity-input').value
-            product_list.validateCellInput(event.target.dataset.productId, parseInt(current_value) - 1)
-        })
-        BX.bindDelegate(this.tableDOM, 'change', {className: 'quantity-input'}, function (event) {
-            let current_value = BX("product-" + event.target.dataset.productId).querySelector('.quantity-input').value
-            product_list.validateCellInput(event.target.dataset.productId, current_value)
-        })
-        BX.bindDelegate(this.tableDOM, 'click', {className: 'delete'}, function (event) {
-            product_list.deleteItem(event.target.dataset.productId)
-        })
+        if (this.page !== 'order') {
+            BX.bindDelegate(this.tableDOM, 'click', {className: 'amount-input__increment'}, function (event) {
+                let current_value = BX("product-" + event.target.dataset.productId).querySelector('.quantity-input').value
+                product_list.validateCellInput(event.target.dataset.productId, parseInt(current_value) + 1)
+            })
+            BX.bindDelegate(this.tableDOM, 'click', {className: 'amount-input__decrement'}, function (event) {
+                let current_value = BX("product-" + event.target.dataset.productId).querySelector('.quantity-input').value
+                product_list.validateCellInput(event.target.dataset.productId, parseInt(current_value) - 1)
+            })
+            BX.bindDelegate(this.tableDOM, 'change', {className: 'quantity-input'}, function (event) {
+                let current_value = BX("product-" + event.target.dataset.productId).querySelector('.quantity-input').value
+                product_list.validateCellInput(event.target.dataset.productId, current_value)
+            })
+            BX.bindDelegate(this.tableDOM, 'click', {className: 'delete'}, function (event) {
+                product_list.deleteItem(event.target.dataset.productId)
+            })
+
+        }
         BX.bindDelegate(this.tableDOM, 'click', {className: 'picture', tagName: 'td'}, function (event) {
             let product_id = event.target.parentElement.id.split('-')[1]
             product_list.getAjaxDetail(product_id)
@@ -112,9 +145,9 @@ var product_list = {
                 BX('current-select').textContent = section_name
                 product_list.reloadAjax()
             })
-
         }
-    },
+    }
+    ,
 
     createSection: function (section) {
         let tbody = BX.create('tbody', {
@@ -133,7 +166,9 @@ var product_list = {
         )
         BX.append(head, tbody)
         BX.append(tbody, this.tableDOM)
-    },
+        return tbody;
+    }
+    ,
 
     addAmountCell: function (trow, product) {
         let amount_cell = BX.create('td', {
@@ -147,8 +182,17 @@ var product_list = {
             props: {className: 'product-table__cell'}
         })
         BX.append(amount_cell, trow)
+    }
+    ,
 
-    },
+    addFixedAmountCell: function (trow, product) {
+        let amount_cell = BX.create('td', {
+            html: product.BASKET_QUANTITY + '&nbspшт.',
+            props: {className: 'product-table__cell'}
+        })
+        BX.append(amount_cell, trow)
+    }
+    ,
 
     addSumCell: function (trow, product) {
         let price = parseInt(product.PRICE_3)
@@ -157,8 +201,8 @@ var product_list = {
             html: quantity ? parseInt(price * quantity) + '&nbsp₽' : '',
             props: {className: 'product-table__cell sum'}
         }), trow)
-
-    },
+    }
+    ,
 
     generateStockBlock: function (quantity) {
         let stockBlock = BX.create('div',
@@ -179,19 +223,27 @@ var product_list = {
         }
         stockBlock.dataset.quantity = quantity
         return stockBlock
-    },
+    }
+    ,
 
     addProduct: function (dstNode, product) {
+        if (product.HIDDEN === 'hidden') {
+            return
+        }
         if (product.OFFERS === 'N') {
             this.addSimpleProduct(dstNode, product)
         } else {
             this.addProductWithOffers(dstNode, product)
         }
-    },
+    }
+    ,
 
-    addSimpleProduct: function (dstNode, product, picture_set = undefined) {
+    addSimpleProduct: function (dstNode, product, picture_set = undefined, offer = false) {
         let available = product.QUANTITY > 0
-        let class_name = product.BASKET_QUANTITY > 0 ? 'product-table__row add' : 'product-table__row'
+        let class_name = product.BASKET_QUANTITY > 0 && this.page !== 'order' ? 'product-table__row add' : 'product-table__row'
+        if (offer) {
+            class_name += ' offer'
+        }
         let row = BX.create(
             'tr',
             {
@@ -203,8 +255,7 @@ var product_list = {
         )
 
         if (!available) {
-            return false;
-            /*row.classList.add('no-stock')*/
+            row.classList.add('no-stock')
         }
 
         BX.append(BX.create('td', {
@@ -228,10 +279,11 @@ var product_list = {
         BX.append(BX.create('td', {text: product.NAME, props: {className: 'product-table__cell name'}}), row)
         BX.append(BX.create('td', {
             html: available ? parseInt(product.PRICE_3) + '&nbsp₽' : 'Нет&nbspв&nbspналичии',
-            props: {className: 'product-table__cell price'}
+            props: {className: 'product-table__cell price'},
+            attrs: available ?  null : {colspan: 10}
         }), row)
         BX.append(BX.create('td', {
-            html: available ? parseInt(product.PRICE_2) + '&nbsp₽' : '',
+            html: available ? Math.ceil(parseInt(product.PRICE_2)) + '&nbsp₽' : '',
             props: {className: 'product-table__cell retail-price'}
         }), row)
         BX.append(BX.create('td', {
@@ -239,8 +291,21 @@ var product_list = {
             props: {className: 'product-table__cell stock'},
             attrs: {style: 'display:none'}
         }), row)
+        if (this.page === 'default') {
+            BX.append(BX.create('td', {
+                html: available ? (parseInt(product.PRICE_2)
+                    - parseInt(product.PRICE_3)) + '&nbsp₽' : '',
+                props: {className: 'product-table__cell margin'},
+                style: {color: 'red'}
+            }), row)
+        }
         if (available) {
-            this.addAmountCell(row, product)
+            if (this.page !== 'order') {
+                this.addAmountCell(row, product)
+            } else {
+
+                this.addFixedAmountCell(row, product)
+            }
             this.addSumCell(row, product)
         } else {
             BX.append(BX.create('td', {props: {className: 'product-table__cell'}}), row)
@@ -248,42 +313,48 @@ var product_list = {
         }
 
         BX.append(row, dstNode)
-    },
+    }
+    ,
 
     addProductWithOffers: function (dstNode, product) {
         let nested_table = BX.create('tr',
             {
                 html: '<td colspan="10">' +
-                    '<table class="offer-table">' +
+                    '<table class="offer-table" id="offers-table-' + product.ID + '">' +
                     '<thead>' +
                     '<tr>' +
                     '<th colspan="3" class="product-table__cell offer-head" data-product-id="' + product.ID + '">' +
-                    product.NAME + '<i class="product-table__arrow"></i>' +
+                    product.NAME +
                     '</th>' +
-                    '<th colspan="1" class="product-table__cell offer-head" data-product-id="' + product.ID + '"> от&nbsp' +
-                    parseInt(product.PRICE_3) + '&nbsp₽' +
-                    '</th>' +
-                    '<th colspan="5" class="product-table__cell offer-head"></th>' +
+                    (this.page !== 'order' ? '<th colspan="1" class="product-table__cell offer-head" data-product-id="' + product.ID + '"> от&nbsp' +
+                        parseInt(product.PRICE_3) + '&nbsp₽' +
+                        '</th>' : '') +
+                    '<th colspan="4" class="product-table__cell offer-head"></th>' +
                     '</tr></thead><tbody id="offers-' + product.ID + '">' +
                     '</tbody></table></td>'
             })
         BX.append(nested_table, dstNode)
+        let offer_table = BX('offers-table-' + product.ID)
+        offer_table.insertBefore(BX('colgroup_fixed').cloneNode(true), offer_table.firstChild)
+
         let tbody = BX('offers-' + product.ID)
         let picture_set = product.OFFERS.length
         for (let offer of product.OFFERS) {
             if (this.offer_variant == 1) {
                 picture_set = undefined
             }
-            this.addSimpleProduct(tbody, offer, picture_set)
+            this.addSimpleProduct(tbody, offer, picture_set, true)
             picture_set = 'none'
         }
-    },
+    }
+    ,
 
     reloadAjax: function () {
         this.clear()
         this.getFilterValues()
         this.getAjaxCatalog()
-    },
+    }
+    ,
 
     getAjaxCatalog: function () {
         if (this.loading || this.no_products) {
@@ -308,7 +379,8 @@ var product_list = {
             url,
             this.processUpdate.bind(this)
         )
-    },
+    }
+    ,
 
     createDetailPopup: function (result) {
         let popup = BX.create(
@@ -397,10 +469,11 @@ var product_list = {
                     }
                 ))
         }
-    },
+    }
+    ,
 
     getAjaxDetail: function (product_id) {
-        let url = window.location.href;
+        let url = '/catalog/';
         if (url.indexOf('?') > -1) {
             url += '&AJAX=details'
         } else {
@@ -411,11 +484,13 @@ var product_list = {
             url,
             this.processDetail.bind(this)
         )
-    },
+    }
+    ,
 
     processDetail: function (result) {
         this.createDetailPopup(JSON.parse(result))
-    },
+    }
+    ,
 
     processUpdate: function (result) {
         let current_elem_n = this.element_num
@@ -425,16 +500,18 @@ var product_list = {
         if (current_elem_n < this.element_num) {
             checkLoad()
         }
-    },
+    }
+    ,
 
     clear: function () {
         this.no_products = false
-        while (this.tableDOM.children.length > 1) {
+        while (this.tableDOM.children.length > 2) {
             this.tableDOM.removeChild(this.tableDOM.lastChild)
         }
         this.element_num = 0
         this.section_ids = []
-    },
+    }
+    ,
 
     getFilterValues: function () {
         if (product_list.page === 'default') {
@@ -448,6 +525,11 @@ var product_list = {
             } else {
                 delete this.filter_props.search
             }
+            if (this.filterForm.elements.brand.value !== 0) {
+                this.filter_props.brand = this.filterForm.elements.brand.value
+            } else {
+                delete this.filter_props.brand
+            }
         } else if (product_list.page === 'basket') {
 
             this.filter_props.basket = 'Y'
@@ -455,16 +537,25 @@ var product_list = {
 
             this.filter_props.order = this.order_id
         }
-    },
+    }
+    ,
 
     update: function (result) {
+        if (result.length < 10) {
+            this.no_products = true;
+            return;
+        }
         let new_data = JSON.parse(result)
         this.no_products = true
         for (let section of new_data) {
             if (section.PRODUCTS && section.PRODUCTS.length > 0) {
+                let tbody = null
+                console.log(section)
+                console.log(this.section_ids)
                 if (!(this.section_ids.includes(section.ID))) {
-                    this.createSection(section)
-                    this.section_ids.push(section.ID)
+                    tbody = this.createSection(section)
+                } else {
+                    tbody = BX("section-" + section.ID)
                 }
                 for (let product of section.PRODUCTS) {
                     if (this.no_products) {
@@ -472,6 +563,12 @@ var product_list = {
                     }
                     this.addProduct(BX('section-' + section.ID), product)
                     this.element_num++
+                }
+                if (tbody.children.length < 2) {
+                    tbody.remove()
+                } else {
+                    this.section_ids.push(section.ID)
+
                 }
             }
         }
@@ -481,7 +578,7 @@ var product_list = {
     }
 }
 
-BX.ready(function (){
+BX.ready(function () {
     product_list.getAjaxCatalog()
     product_list.createBinds()
     window.onscroll = function (ev) {
@@ -493,6 +590,9 @@ BX.ready(function (){
             evt.preventDefault();
         })
         BX('search-input').addEventListener('input',
+            product_list.reloadAjax.bind(product_list)
+        )
+        BX('brands-input').addEventListener('change',
             product_list.reloadAjax.bind(product_list)
         )
     }

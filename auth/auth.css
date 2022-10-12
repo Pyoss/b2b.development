@@ -91,6 +91,7 @@ input::placeholder {
 }
 
 .auth label input:not(input:placeholder-shown) + .hint,
+.auth label input:not(input:-webkit-autofill) + .hint,
 .auth label input:focus + .hint{
     color: grey;
     visibility: visible;
@@ -108,9 +109,14 @@ input::placeholder {
     font-size: 17px;
     border: none;
     border-radius: 5px;
+    cursor: pointer;
 }
 
 .auth__details {
     text-align: center;
     margin-bottom: 12px;
+}
+
+.error-message {
+    color:red;
 }

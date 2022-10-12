@@ -11,10 +11,10 @@
 
 CModule::IncludeModule('dj.b2b');
 
-use DJ\B2B\Applications\ApplicationsTable;
+use DJ\B2B\Bitrix1C\Api;
 use Bitrix\Main\Localization\Loc;
-use Bitrix1C\Api;
 
+\Bitrix\Main\Loader::includeModule('dj.b2b');
 $api = new Api();
 $arResult['PAYMENT_RESULT'] = json_decode($api -> GetPaymentList(), true);
 $this -> includeComponentTemplate();

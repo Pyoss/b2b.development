@@ -6,6 +6,12 @@ $aMenuLinks = Array(
         Array(),
         Array(),
         ""
+    ),Array(
+        "Создание клиента",
+        "/new_client/",
+        Array(),
+        Array(),
+        ""
     ),
 );
 ?>

@@ -23,6 +23,9 @@
             </thead>
             <tbody>
             <?
+            if (!$arResult['GRID']['ROWS']){
+                ?>У вас нет выписанных счетов<?
+            }
             foreach ($arResult['GRID']['ROWS'] as $payment):
                 ?><tr><?
                 foreach ($payment as $class => $row):
