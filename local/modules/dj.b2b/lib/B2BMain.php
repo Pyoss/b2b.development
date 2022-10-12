@@ -10,12 +10,13 @@ class B2BMain
         $b2bGroupId = 0;
         $result = \Bitrix\Main\GroupTable::getList(array(
             'select'  => array('ID'),
-            'filter'  => array('CODE'=>'b2b_clients')
+            'filter'  => array('STRING_ID'=>'b2b_clients')
         ));
 
         while ($arGroup = $result->fetch()) {
             $b2bGroupId = $arGroup['ID'];
         }
+        print_r(234);
         print_r($b2bGroupId);
         print_r($arUserGroups);
         if (!$USER->IsAuthorized() || !in_array($b2bGroupId, $arUserGroups)) {
@@ -30,7 +31,7 @@ class B2BMain
         $b2bGroupId = 0;
         $result = \Bitrix\Main\GroupTable::getList(array(
             'select'  => array('ID'),
-            'filter'  => array('CODE'=>'b2b_managers')
+            'filter'  => array('STRING_ID'=>'b2b_managers')
         ));
 
         while ($arGroup = $result->fetch()) {
