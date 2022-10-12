@@ -1,0 +1,46 @@
+.app__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 800px;
+}
+
+.app__row>div {border: 1px solid #888888;padding: 10px;}
+
+.app__buttons {
+    margin: 20px;
+}
+
+button.app__button-confirm {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: 2px solid green;
+    background: none;
+    font-size: 18px;
+    color: green;
+    cursor: pointer;
+}
+
+
+
+button.app__button-confirm {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: 2px solid green;
+    background: none;
+    font-size: 18px;
+    color: green;
+    cursor: pointer;
+}
+
+
+
+button.app__button-deny {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: 2px solid red;
+    background: none;
+    font-size: 18px;
+    color: red;
+    cursor: pointer;
+    margin-left: 20px;
+}

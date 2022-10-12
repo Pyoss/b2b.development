@@ -1,0 +1,33 @@
+.order__prop {
+    display: grid;
+    grid-template-columns: 200px 435px;
+    gap: 24px;
+    margin-bottom: 60px;
+}
+
+.order__prop-title {
+    text-align: right;
+    font-weight: bold;
+}
+.order__prop select {
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+.order input[type="submit"] {
+    background-color: #ff6100;
+    border: 0;
+    color:  white;
+    font-size: 18px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-left: 224px;
+}
+
+.order-result {
+    padding: 20px;
+}
+
+.date input[type="text"] {
+    cursor: pointer;
+}

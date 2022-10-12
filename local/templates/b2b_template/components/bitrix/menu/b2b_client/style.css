@@ -1,0 +1,20 @@
+
+.sidebar__menu {
+    padding-bottom: 70px;
+}
+
+.sidebar__menu-item,
+.sidebar__menu-item--active{
+    padding: 15px 30px;
+    position: relative;
+    font-size: 13px;
+}
+
+.sidebar__menu a{
+    color: white;
+    text-decoration: none;
+}
+
+.sidebar__menu-item--active{
+    background-color: #ff7100;
+}

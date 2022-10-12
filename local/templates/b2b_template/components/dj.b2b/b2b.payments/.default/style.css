@@ -1,0 +1,15 @@
+.payments table {
+    /* border: 1px solid black; */
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+td.b2b-table__cell {
+    width: 200px;
+    border: 1px solid;
+    padding: 15px;
+}
+
+td.b2b-table__cell.payment_name {
+    width: 300px;
+}

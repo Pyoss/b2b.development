@@ -1,0 +1,33 @@
+
+.basket-button {
+    background-color: unset;
+    color: white;
+    border: none;
+    text-transform: uppercase;
+    font-size: 15px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    position: relative;
+}
+
+.basket-button__icon {
+    background: center/contain no-repeat url("/src/figma-images/basket.svg");
+    height: 21px;
+    width: 21px;
+}
+
+.basket_button__quantity {
+    position: absolute;
+    background-color: #ff6100;
+    border-radius: 50%;
+    font-style: normal;
+    height: 20px;
+    text-align: center;
+    padding-top: 2px;
+    min-width: 20px;
+    right: -5px;
+    top: -8px;
+}

@@ -1,0 +1,87 @@
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
+}
+.profile-wrapper {
+    display: flex;
+    gap: 50px;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+    align-items: start;
+}
+
+.profile-wrapper input {
+    font-size: 24px;
+}
+
+.profile-photo {
+    width: 200px;
+    height: 200px;
+    background-color: grey;
+}
+
+.profile__name {
+    font-size: 28px;
+}
+
+.profile__company {
+    font-size: 24px;
+    margin-top: 30px;
+    display: block;
+    height: 28px;
+}
+
+.profile__phone {
+    font-size: 24px;
+    margin-top: 40px;
+    color: #828282;
+}
+
+.profile__email {
+    font-size: 24px;
+    margin-top: 12px;
+    color: #828282;
+}
+
+.profile__company.loading {
+    width: 400px;
+}
+
+.company-table.loading {
+    height: 500px;
+}
+
+.loading {
+    background-color: lightgray;
+    border-radius: 5px;
+    animation: Pulsate 2s linear infinite;
+}
+
+.profile__edit {
+    margin-top: 50px;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 15px 25px;
+    background-color: unset;
+    font-size: 18px;
+}
+
+@keyframes Pulsate {
+    from { opacity: .5; }
+    50% { opacity: .3; }
+    to { opacity: .5; }
+}
+
+.company-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.company-table td {
+    padding: 16px;
+    font-size: 14px;
+    line-height: 16px;
+    border: 1px solid #C2C9D1;
+}

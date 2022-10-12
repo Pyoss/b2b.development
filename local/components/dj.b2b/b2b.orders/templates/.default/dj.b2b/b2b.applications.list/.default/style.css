@@ -1,0 +1,15 @@
+
+.app-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    padding: 10px;
+    font-size: 18px;
+    margin: 5px;
+    border: 1px solid #888888;
+    border-radius: 15px;
+    align-items: center;
+}
+
+.app-item > div {
+    text-align: center;
+}

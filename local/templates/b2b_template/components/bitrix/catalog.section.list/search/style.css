@@ -1,0 +1,73 @@
+
+.section-input {
+    position: relative;
+    width: 200px;
+    background-color: #F2F2F2;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.section-input:not(*:first-child){
+    border-top: 1px solid #BDBDBD;
+
+}
+
+.section-input.section-main {
+    width: 280px;
+    border: 1px solid #BDBDBD;
+    margin-top: 6px;
+    padding: 5px;
+}
+
+.section-input__group--root,
+.section-input__group {
+    visibility: hidden;
+    position: absolute;
+    z-index: 100;
+    right: calc(-100% - 2px);
+    top: -1px;
+    border: 1px solid #BDBDBD;
+}
+
+.section-input__group--root span,
+.section-input__group span {
+    pointer-events: none;
+}
+
+.section-input__group--root {
+    right: 0;
+    top: 100%;
+}
+
+.section-input__group:hover,
+.section-input__group--root:hover {
+    visibility: visible;
+    transition: 1s;
+}
+
+.section-input:hover:not(.section-main) {
+    background-color: #ff7300;
+    color:white;
+}
+
+.section-input:hover:not(.section-main) > .section-input__arrow {
+     filter: none;
+ }
+
+.section-input:hover > .section-input__group,
+.section-input:hover > .section-input__group--root {
+    visibility: visible;
+    color: black;
+}
+
+.section-input__arrow {
+    display: block;
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: center/contain no-repeat url("/src/figma-images/arrow.svg");
+    filter: brightness(.5);
+    right: 5px;
+    bottom: 12px;
+    transform: rotate(-90deg);
+}
