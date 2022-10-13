@@ -8,16 +8,16 @@ $eventManager->unRegisterEventHandler("main", "OnAdminIBlockElementEdit", "seo",
 $eventManager = Bitrix\Main\EventManager::getInstance();
 $eventManager->addEventHandler(
     "sale",
-    "DiscountonAfterAdd",
+    "\Bitrix\Sale\Internals\Discount::onAfterDelete",
     'updateDiscountProps'
 );
 $eventManager->addEventHandler(
     "sale",
-    "DiscountonAfterUpdate",
+    "\Bitrix\Sale\Internals\Discount::onAfterUpdate",
     'updateDiscountProps'
 );
 $eventManager->addEventHandler("sale",
-    "DiscountonAfterDelete",
+    "\Bitrix\Sale\Internals\Discount::onAfterAdd",
     'updateDiscountProps'
 );
 
@@ -107,8 +107,6 @@ function updateDiscountProps(\Bitrix\Main\Event $event)
                         'bb'
                     );
                     $arProperties = [];
-                    writeLog($valID);
-                    writeLog($ELEMENT_ID);
                     $resProperties = CIBlockElement::GetProperty($iblockID, $ELEMENT_ID, 'sort', 'asc', array('CODE' => 'b2b_sale'));
                     while ($arPropertyValue = $resProperties->GetNext()) {
                         $arProperties[] = $arPropertyValue['VALUE'];
@@ -117,7 +115,6 @@ function updateDiscountProps(\Bitrix\Main\Event $event)
                         if (!in_array($valID, $arProperties)) {
                             $arProperties[] = $valID;
                         }
-                        writeLog($arProperties);
                     } else {
                         $arProperties = array_diff($arProperties, [$valID]);
                         if (!$arProperties){
