@@ -6,6 +6,9 @@ use B2BAjax\B2BDetails,
     Bitrix\Sale\Order,
     Bitrix\Sale\Basket;
 use Bitrix\Iblock\ElementPropertyTable;
+use Bitrix\Iblock\PropertyEnumerationTable;
+use Bitrix\Iblock\PropertyTable;
+use CIBlockElement;
 
 class B2BCatalog
 {
@@ -13,12 +16,28 @@ class B2BCatalog
     private int $element_offset = 0;
     private int $iblock = 2;
     private array $arBasketItems;
-    private array $filters = [];
+    private array $query_data = [];
     private $order_basket = false;
+    private array $arElementsFilter = [];
+    private array $arOffersFilter = [];
+    private bool $offersFiltered = false;
+
+
+    private function log_string($string)
+    {
+
+        if ($_GET['log'] == 'true') {
+            echo '<pre>';
+            print_r($string);
+            echo '</pre>';
+        }
+    }
 
     public function __construct()
     {
         \CModule::IncludeModule("sale");
+        \CModule::IncludeModule('iblock');
+
         if (!$_GET['order']) {
             $basket = Basket::loadItemsForFUser(\Bitrix\Sale\Fuser::getId(),
                 \Bitrix\Main\Context::getCurrent()->getSite());
@@ -31,9 +50,78 @@ class B2BCatalog
         foreach ($basketItems as $item) {
             $this->arBasketItems[$item->getProductId()] = $item->getQuantity();
         }
+        $this->element_offset = (int)$_GET['offset'];
+        $this->query_data = [
+            'main' => ($_GET['basket'] ? 'basket' : 'catalog'),
+            'property_filter' => [
+                'BRAND' => $_GET['BRAND'],
+                'b2b_sale' => $_GET['b2b_sale'],
+                'promote' => $_GET['promote']
+            ],
+            'section' => $_GET['sections'],
+            'search' => $_GET['search']];
     }
 
-    private function searchFilter($query): array
+    private function rejectEmpty()
+    {
+        if (!$this->arElementsFilter) {
+            echo '';
+            die();
+        }
+    }
+
+    public function formCatalogJson()
+    {
+        $arSectionFilter = array();
+
+        // Фильтруем ID элементов по запросу поиска или в корзине.
+        // Если поиск находит 0 элементов - возвращается пустая строка
+        if ($this->query_data['main'] == 'basket') {
+            $this->basketFilter();
+        } else if ($this->query_data['search']) {
+            $this->searchFilter($this->query_data['search']);
+            $this->rejectEmpty();
+        }
+
+        $this->log_string($this->query_data);
+        // Отфильтровываем ID, не подходящие по описанию параметров
+        foreach ($this->query_data['property_filter'] as $property_code => $property_value) {
+            if (!$property_value) {
+                continue;
+            }
+
+            $this->propertyFilter($property_code, $property_value);
+            $this->rejectEmpty();
+        }
+
+        $arSectionFilter['IBLOCK_ID'] = $this->iblock;
+        $arAllSections = array();
+
+// Фильтруем категории по указанной родительской
+        if ($this->query_data['section']) {
+            $arSectionFilter['SECTION_ID'] = $this->sectionFilter($this->query_data['section'], $arAllSections);
+        }
+
+// Добавляем к родительской дочернии категории
+        $arSectionSelect = array('ID', 'NAME', 'SORT');
+        $resSections = \CIBlockSection::GetList(array('SORT' => 'ASC'), $arSectionFilter, false, $arSectionSelect);
+        while ($arSection = $resSections->fetch()) {
+            $arAllSections[] = $arSection;
+        }
+
+        foreach ($arAllSections as &$section) {
+            if (!$this->addSectionProducts($section)) {
+                $this->log_string($section['NAME']);
+                break;
+            }
+        }
+        if (!$_GET['log']) {
+            echo json_encode($arAllSections, JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    private
+    function searchFilter($query): void
     {
         $arElements = array();
         \CModule::IncludeModule("search");
@@ -45,35 +133,57 @@ class B2BCatalog
         while ($row = $obSearch->fetch()) {
             $arElements[] = $row['ITEM_ID'];
         }
-        return $arElements;
+        $this->arElementsFilter = $arElements;
     }
 
-    private function brandFilter($brandId): array
-    {
-        $arElements = [];
-        $rsBrands = ElementPropertyTable::getList(['filter' => ['IBLOCK_PROPERTY_ID' => 10, 'VALUE' => $brandId],
-            'select' => ['IBLOCK_ELEMENT_ID']]);
-        while ($arBrand = $rsBrands->fetch()) {
-            $arElements[] = $arBrand['IBLOCK_ELEMENT_ID'];
-        }
-        return $arElements;
-    }
-
-    private function basketFilter(): array
+    private
+    function basketFilter(): void
     {
         $arFilter = [];
         foreach (array_keys($this->arBasketItems) as $basketItemId) {
             $arFilter[] = \CCatalogSku::GetProductInfo($basketItemId)['ID'] ?? $basketItemId;
         }
-        return array_unique($arFilter);
+        $this->arElementsFilter = array_unique($arFilter);
     }
 
-    private function sectionFilter($section_id, &$arAllSections): array
+    private
+    function propertyFilter($code, $value): void
     {
 
-        /* ================================ */
-        /* ПОЛНЫЙ СПИСОК ПОДРАЗДЕЛОВ УКАЗАННОГО $arSectionFilter РАЗДЕЛА */
-        /* ================================ */
+        $resProperty = PropertyTable::getList(['filter' => ['CODE' => $code], 'select' => ['ID', 'IBLOCK_ID']]);
+        while ($arProperty = $resProperty -> fetch())
+        {
+            $arElements = [];
+            //check enum
+            $this->log_string($arProperty);
+            $this->log_string($value);
+            $true_value = $value;
+            $resEnum = PropertyEnumerationTable::getList(
+                ['filter' => ['PROPERTY_ID' => $arProperty['ID'], 'VALUE' => $value],
+                    'select' => ['ID']]);
+            while ($arEnum = $resEnum -> fetch()){
+                 $true_value = $arEnum['ID'];
+            }
+            $this->log_string($true_value);
+
+            $resPropertiesValue = ElementPropertyTable::getList(['filter' => ['IBLOCK_PROPERTY_ID' => $arProperty['ID'], 'VALUE' => $true_value],
+                'select' => ['IBLOCK_ELEMENT_ID']]);
+            while ($arPropertyValue = $resPropertiesValue->fetch()) {
+                $arElements[] = $arPropertyValue['IBLOCK_ELEMENT_ID'];
+            }
+            $this->log_string($arElements);
+            if ($arProperty['IBLOCK_ID'] == 2){
+                $this->arElementsFilter = $this->arElementsFilter ? array_intersect($this->arElementsFilter, $arElements) : $arElements;
+            } elseif ($arProperty['IBLOCK_ID'] == 3){
+                $this -> offersFiltered = true;
+                $this->arOffersFilter = $this->arOffersFilter ? array_intersect($this->arOffersFilter, $arElements) : $arElements;
+            }
+        }}
+
+
+    private
+    function sectionFilter($section_id, &$arAllSections): array
+    {
         $rsParentSection = \CIBlockSection::GetByID($section_id);
         if ($arParentSection = $rsParentSection->GetNext()) {
             $arrFullListSection = array();
@@ -93,10 +203,19 @@ class B2BCatalog
         return array();
     }
 
-    private function addSectionProducts($arElementsFilter, &$section): bool
+    public
+    function formDetailsJson()
+    {
+        $b2b_detail = new B2BDetails($_GET['product_id']);
+        $b2b_detail->getData();
+        echo json_encode($b2b_detail->getAjaxResult(), JSON_UNESCAPED_UNICODE);
+    }
+
+    private
+    function addSectionProducts(&$section): bool
     {
         $chosen_products = [];
-        $arFilter = array('SECTION_ID' => $section['ID'], 'ACTIVE' => 'Y', 'ID' => $arElementsFilter);
+        $arFilter = array('SECTION_ID' => $section['ID'], 'ACTIVE' => 'Y', 'ID' => $this->arElementsFilter);
         $sectionCount = \CIBlockElement::GetList(false, $arFilter, array());
         if ($sectionCount < $this->element_offset) {
             $this->element_offset -= $sectionCount;
@@ -109,6 +228,7 @@ class B2BCatalog
                 array('PROPERTY_ARTNUMBER', 'PROPERTY_b2b_available',
                     'ID', 'NAME', 'PRICE_2', 'PRICE_3', 'QUANTITY', 'PREVIEW_PICTURE', 'DETAIL_PICTURE', 'ACTIVE'));
             while ($arProduct = $resProducts->fetch()) {
+
                 if (!$arProduct['DETAIL_PICTURE']) {
                     $arProduct['DETAIL_PICTURE'] = $arProduct['PREVIEW_PICTURE'];
                 }
@@ -134,38 +254,77 @@ class B2BCatalog
                     );
 
                     while ($arOffer = $resOffers->fetch()) {
+
+                        //Получаем b2b_sale
+                        $resProperties = CIBlockElement::GetProperty(3, $arOffer['ID'], 'sort', 'asc', array('CODE' => 'b2b_sale'));
+                        while ($arProperty = $resProperties->GetNext()) {
+                            if (!$arProperty['VALUE']){
+                                continue;
+                            }
+                            $arOffer['b2b_sale'][] = PropertyEnumerationTable::getById(['PROPERTY_ID' => $arProperty['ID'], 'ID' => $arProperty['VALUE']])-> fetch()['VALUE'];
+                        }
+
+
                         if (count($arProduct['OFFERS']) == 0) {
                             $arOffer['DETAIL_PICTURE_REAL'] = $this->formatImageReal($arOffer['DETAIL_PICTURE']);
                         }
                         $arOffer['DETAIL_PICTURE'] = $this->formatImage($arOffer['DETAIL_PICTURE']);
                         $arOffer['BASKET_QUANTITY'] = $this->arBasketItems[$arOffer['ID']] ?? 0;
-                        if (in_array('basket', $this->filters)) {
+                        $this -> getDiscounts($arOffer);
+                        $arOffer['PRICE_2'] = $arOffer['RETAIL_DISCOUNTS']['RESULT_PRICE']['DISCOUNT_PRICE'];
+
+                        if ($this -> offersFiltered && !in_array($arOffer['ID'], $this -> arOffersFilter)){
+                            $arOffer['HIDDEN'] = 'hidden';
+                        }
+                        if ($this->query_data['main'] == 'basket') {
                             if (in_array($arOffer['ID'], array_keys($this->arBasketItems))) {
                                 if ($this->order_basket) {
                                     $basket_item = $this->order_basket->getExistsItem('catalog', $arOffer['ID']);
 
                                     $arOffer['PRICE_3'] = $basket_item->getField('PRICE');
+                                } else {
+                                    $arOffer['PRICE_3'] = $arOffer['WHOLESALE_DISCOUNTS']['RESULT_PRICE']['DISCOUNT_PRICE'];
                                 }
                                 $arProduct['OFFERS'][] = $arOffer;
                             }
                         } else {
+                            $arOffer['PRICE_3'] = $arOffer['WHOLESALE_DISCOUNTS']['RESULT_PRICE']['DISCOUNT_PRICE'];
+                            unset($arOffer['WHOLESALE_DISCOUNTS']);
+                            unset($arOffer['RETAIL_DISCOUNTS']);
                             $arProduct['OFFERS'][] = $arOffer;
                         }
+                        $this->log_string($arOffer);
                     }
                 } else {
                     $arProduct['OFFERS'] = 'N';
+                    $this -> getDiscounts($arProduct);
 
+                    //Получаем b2b_sale
+
+                    $resProperties = CIBlockElement::GetProperty(2, $arProduct['ID'], 'sort', 'asc', array('CODE' => 'b2b_sale'));
+                    while ($arProperty = $resProperties->GetNext()) {
+                        if (!$arProperty['VALUE']){
+                            continue;
+                        }
+                        $arProduct['b2b_sale'][] = PropertyEnumerationTable::getById(['PROPERTY_ID' => $arProperty['ID'], 'ID' => $arProperty['VALUE']])-> fetch()['VALUE'];
+                    }
+
+                    $arProduct['PRICE_2'] = $arProduct['RETAIL_DISCOUNTS']['RESULT_PRICE']['DISCOUNT_PRICE'];
                     if ($this->order_basket) {
                         $basket_item = $this->order_basket->getExistsItem('catalog', $arProduct['ID']);
                         $arProduct['PRICE_3'] = $basket_item->getPrice();
+                    } else {
+                        $arProduct['PRICE_3'] = $arProduct['WHOLESALE_DISCOUNTS']['RESULT_PRICE']['DISCOUNT_PRICE'];
                     }
-                    /*else if ($arProduct['QUANTITY'] < 1) {
-                        $arProduct['HIDDEN'] = 'hidden';
-                    }*/
+                    unset($arProduct['WHOLESALE_DISCOUNTS']);
+                    unset($arProduct['RETAIL_DISCOUNTS']);
+                    $this->log_string($arProduct);
                 }
                 $arProduct['DETAIL_PICTURE'] = $this->formatImage($arProduct['DETAIL_PICTURE']);
                 $arProduct['BASKET_QUANTITY'] = $this->arBasketItems[$arProduct['ID']] ?? 0;
-                $chosen_products[] = $arProduct;
+                if ($arProduct['OFFERS'] == 'N' || $arProduct['OFFERS']){
+                    $chosen_products[] = $arProduct;
+                }
             }
             $section['PRODUCTS'] = $chosen_products;
             $this->element_pagesize -= count($chosen_products);
@@ -177,84 +336,41 @@ class B2BCatalog
         return true;
     }
 
-    private function formatImage($IMAGE_ID)
+    private function getDiscounts(&$arProduct): void
+    {
+
+        $arProduct['WHOLESALE_DISCOUNTS'] = \CCatalogProduct::GetOptimalPrice(
+        $arProduct['ID'],
+        $this->arBasketItems[$arProduct['ID']] ?? 1,
+        array(), 'N', array(
+        [
+            'PRICE' => $arProduct['PRICE_3'],
+            'CURRENCY' => 'RUB',
+            'CATALOG_GROUP_ID' => 3],
+    ), 'bb'
+    );
+        $arProduct['RETAIL_DISCOUNTS'] = \CCatalogProduct::GetOptimalPrice(
+            $arProduct['ID'],
+            $this->arBasketItems[$arProduct['ID']] ?? 1,
+            array(2), 'N', array(
+            [
+                'PRICE' => $arProduct['PRICE_2'],
+                'CURRENCY' => 'RUB',
+                'CATALOG_GROUP_ID' => 2],
+        ), 's1'
+        );
+    }
+
+    private
+    function formatImage($IMAGE_ID)
     {
         return \CFile::ResizeImageGet($IMAGE_ID, array('width' => 100, 'height' => 50));
     }
 
-    private function formatImageReal($IMAGE_ID)
+    private
+    function formatImageReal($IMAGE_ID)
     {
         return \CFile::ResizeImageGet($IMAGE_ID, array('width' => 100, 'height' => 300));
     }
 
-    public function formCatalogJson()
-    {
-        $this->element_offset = (int)$_GET['offset'];
-        $section_id = (int)$_GET['sections'];
-        $search = $_GET['search'];
-        $brand = $_GET['brand'];
-        $basket = $_GET['basket'];
-        $order = $_GET['order'];
-        \CModule::IncludeModule('iblock');
-        $arSectionFilter = array();
-
-        // Фильтруем ID элементов по запросу поиска
-        if ($basket) {
-            $this->filters[] = 'basket';
-            $arElementsFilter = $this->basketFilter();
-        } else if ($order) {
-            $this->filters[] = 'basket';
-            $arElementsFilter = $this->basketFilter();
-        } else {
-
-            if ($search) {
-                $arElementsFilter = $this->searchFilter($search);
-                if (!$arElementsFilter) {
-                    echo '';
-                    die();
-                }
-            }
-            if ($brand) {
-                $arBrandFilter = $this->brandFilter($brand);
-                if ($arElementsFilter) {
-                    $arElementsFilter = array_intersect($arElementsFilter, $arBrandFilter);
-                } else {
-                    $arElementsFilter = $arBrandFilter;
-                }
-                if (!$arElementsFilter) {
-                    echo '';
-                    die();
-                }
-            }
-        }
-        $arSectionFilter['IBLOCK_ID'] = $this->iblock;
-
-        $arAllSections = array();
-
-        // Фильтруем категории по указанной родительской
-        if ($section_id) {
-            $arSectionFilter['SECTION_ID'] = $this->sectionFilter($section_id, $arAllSections);
-        }
-
-        // Добавляем к родительской дочернии категории
-        $arSectionSelect = array('ID', 'NAME', 'SORT');
-        $resSections = \CIBlockSection::GetList(array('SORT' => 'ASC'), $arSectionFilter, false, $arSectionSelect);
-        while ($arSection = $resSections->fetch()) {
-            $arAllSections[] = $arSection;
-        }
-
-        foreach ($arAllSections as &$section) {
-            if (!$this->addSectionProducts($arElementsFilter, $section)) {
-                break;
-            }
-        }
-        echo json_encode($arAllSections, JSON_UNESCAPED_UNICODE);
-    }
-
-    public function formDetailsJson()
-    {
-        $b2b_detail = new B2BDetails($_GET['product_id']);
-        $b2b_detail->getData();
-        echo json_encode($b2b_detail->getAjaxResult(), JSON_UNESCAPED_UNICODE);
-    }
 }

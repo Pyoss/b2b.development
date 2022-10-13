@@ -81,8 +81,8 @@ var product_list = {
 
     updateSum: function (product_id, quantity) {
         let sumDOM = BX("product-" + product_id).querySelector('.sum')
-        let price = parseInt(BX("product-" + product_id).querySelector('.price').innerHTML)
-        sumDOM.innerHTML = quantity ? parseInt(price * quantity) + '&nbsp₽' : ''
+        let price = parseInt(BX("product-" + product_id).querySelector('.price').innerHTML.replace(/\s/g, ''))
+        sumDOM.innerHTML = quantity ? numberWithSpaces(parseInt(price * quantity)) : ''
     }
     ,
 
@@ -155,7 +155,7 @@ var product_list = {
         })
         let head = BX.create('tr', {
                 prop: {className: 'product-table__row--header'},
-                html: '<th class="product-table__cell section-cell" colspan=8>' + section.NAME + '<i class="product-table__arrow"></i>' + '</th>',
+                html: '<th class="product-table__cell section-cell" colspan=9>' + section.NAME + '<i class="product-table__arrow"></i>' + '</th>',
                 events: {
                     click: function (event) {
                         BX.toggleClass(BX('section-' + section.ID), ['section-hidden', ''])
@@ -173,11 +173,11 @@ var product_list = {
     addAmountCell: function (trow, product) {
         let amount_cell = BX.create('td', {
             html: '<div class="amount-input">' +
+                '<i class="fa fa-trash delete" data-product-id="' + product.ID + '" ></i> ' +
                 '<div data-product-id="' + product.ID + '" class="amount-input__decrement">-</div>' +
                 '<input class="quantity-input" data-product-id="' + product.ID +
                 '" type="number" value="' + product.BASKET_QUANTITY + '">' +
                 '<div data-product-id="' + product.ID + '" class="amount-input__increment">+</div>' +
-                '<i class="fa fa-trash delete" data-product-id="' + product.ID + '" ></i> ' +
                 '</div>',
             props: {className: 'product-table__cell'}
         })
@@ -198,7 +198,7 @@ var product_list = {
         let price = parseInt(product.PRICE_3)
         let quantity = parseInt(product.BASKET_QUANTITY)
         BX.append(BX.create('td', {
-            html: quantity ? parseInt(price * quantity) + '&nbsp₽' : '',
+            html: quantity ? parseInt(price * quantity) : '',
             props: {className: 'product-table__cell sum'}
         }), trow)
     }
@@ -275,15 +275,35 @@ var product_list = {
                 attrs: {rowspan: picture_set}
             }), row)
         }
-
         BX.append(BX.create('td', {text: product.NAME, props: {className: 'product-table__cell name'}}), row)
+
+
+        if (this.page === 'default') {
+            let saleBlock = '<div class="product-table__sale">'
+            if (product.b2b_sale) {
+                if (product.b2b_sale.includes('Хит')) {
+                    saleBlock += '<div class="product-table__sale-image"> <img src="/src/figma-images/hit.png"></div>'
+                }
+                if (product.b2b_sale.includes('Новинка')) {
+
+                    saleBlock += '<div class="product-table__sale-image"><img src="/src/figma-images/new.png"></div>'
+                }
+                if (product.b2b_sale.includes('Скидка')) {
+                    saleBlock += '<div class="product-table__sale-image"><img src="/src/figma-images/sale.png"></div>'
+                }
+            }
+            saleBlock += '</div>'
+            BX.append(BX.create('td', {html: saleBlock, props: {className: 'product-table__cell sale'}}), row)
+
+        }
+
         BX.append(BX.create('td', {
-            html: available ? parseInt(product.PRICE_3) + '&nbsp₽' : 'Нет&nbspв&nbspналичии',
+            html: available ? numberWithSpaces(parseInt(product.PRICE_3)) : 'Нет&nbspв&nbspналичии',
             props: {className: 'product-table__cell price'},
             attrs: available ?  null : {colspan: 10}
         }), row)
         BX.append(BX.create('td', {
-            html: available ? Math.ceil(parseInt(product.PRICE_2)) + '&nbsp₽' : '',
+            html: available ? numberWithSpaces(Math.ceil(parseInt(product.PRICE_2))) : '',
             props: {className: 'product-table__cell retail-price'}
         }), row)
         BX.append(BX.create('td', {
@@ -293,10 +313,10 @@ var product_list = {
         }), row)
         if (this.page === 'default') {
             BX.append(BX.create('td', {
-                html: available ? (parseInt(product.PRICE_2)
-                    - parseInt(product.PRICE_3)) + '&nbsp₽' : '',
+                html: available ? (numberWithSpaces(parseInt(product.PRICE_2)
+                    - parseInt(product.PRICE_3))) : '',
                 props: {className: 'product-table__cell margin'},
-                style: {color: 'red'}
+                style: {color: '#FF6100'}
             }), row)
         }
         if (available) {
@@ -317,17 +337,24 @@ var product_list = {
     ,
 
     addProductWithOffers: function (dstNode, product) {
+        product.OFFERS = product.OFFERS.filter(function( offer ) {
+            return offer.HIDDEN !== 'hidden';
+        });
+        console.log(product.OFFERS)
+        if (product.OFFERS.length === 0 ){
+            return;
+        }
         let nested_table = BX.create('tr',
             {
-                html: '<td colspan="10">' +
+                html: '<td colspan="11">' +
                     '<table class="offer-table" id="offers-table-' + product.ID + '">' +
                     '<thead>' +
                     '<tr>' +
                     '<th colspan="3" class="product-table__cell offer-head" data-product-id="' + product.ID + '">' +
                     product.NAME +
                     '</th>' +
-                    (this.page !== 'order' ? '<th colspan="1" class="product-table__cell offer-head" data-product-id="' + product.ID + '"> от&nbsp' +
-                        parseInt(product.PRICE_3) + '&nbsp₽' +
+                    (this.page !== 'order' ? '<th colspan="2" class="product-table__cell offer-head" data-product-id="' + product.ID + '"> от&nbsp' +
+                        numberWithSpaces(parseInt(product.PRICE_3)) + '&nbsp₽' +
                         '</th>' : '') +
                     '<th colspan="4" class="product-table__cell offer-head"></th>' +
                     '</tr></thead><tbody id="offers-' + product.ID + '">' +
@@ -423,7 +450,7 @@ var product_list = {
                     BX.create('tr', {
                             children: [
                                 BX.create('td', {html: 'Цена'}),
-                                BX.create('td', {html: result.OFFERS === 'Y' ? 'от ' + parseInt(price_group.PRICE) + '&nbsp₽' : parseInt(price_group.PRICE) + '&nbsp₽'})
+                                BX.create('td', {html: result.OFFERS === 'Y' ? 'от ' + parseInt(price_group.PRICE) : parseInt(price_group.PRICE)})
                             ]
                         }
                     ))
@@ -432,7 +459,7 @@ var product_list = {
                     BX.create('tr', {
                             children: [
                                 BX.create('td', {html: 'РРЦ'}),
-                                BX.create('td', {html: result.OFFERS === 'Y' ? 'от ' + parseInt(price_group.PRICE) + '&nbsp₽' : parseInt(price_group.PRICE) + '&nbsp₽'})
+                                BX.create('td', {html: result.OFFERS === 'Y' ? 'от ' + parseInt(price_group.PRICE) : parseInt(price_group.PRICE)})
                             ]
                         }
                     ))
@@ -515,6 +542,7 @@ var product_list = {
 
     getFilterValues: function () {
         if (product_list.page === 'default') {
+            console.log(this.filterForm)
             if (this.filterForm.elements.sections.value) {
                 this.filter_props.sections = this.filterForm.elements.sections.value
             } else {
@@ -525,10 +553,15 @@ var product_list = {
             } else {
                 delete this.filter_props.search
             }
-            if (this.filterForm.elements.brand.value !== 0) {
-                this.filter_props.brand = this.filterForm.elements.brand.value
+            if (this.filterForm.elements.BRAND.value !== 0) {
+                this.filter_props.BRAND = this.filterForm.elements.BRAND.value
             } else {
-                delete this.filter_props.brand
+                delete this.filter_props.BRAND
+            }
+            if (this.filterForm.elements.b2b_sale.value !== 0) {
+                this.filter_props.b2b_sale = this.filterForm.elements.b2b_sale.value
+            } else {
+                delete this.filter_props.b2b_sale
             }
         } else if (product_list.page === 'basket') {
 
@@ -595,5 +628,12 @@ BX.ready(function () {
         BX('brands-input').addEventListener('change',
             product_list.reloadAjax.bind(product_list)
         )
+        BX('sale-input').addEventListener('change',
+            product_list.reloadAjax.bind(product_list)
+        )
     }
 })
+
+function numberWithSpaces(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}

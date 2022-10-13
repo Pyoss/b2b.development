@@ -14,10 +14,14 @@
 }
 
 .section-input.section-main {
-    width: 280px;
+    width: 205px;
     border: 1px solid #BDBDBD;
     margin-top: 6px;
-    padding: 5px;
+    padding: 6px 5px 4px 8px;
+    height: 30px;
+    position: relative;
+    top: 1px;
+    border-radius: 4px;
 }
 
 .section-input__group--root,
@@ -52,8 +56,8 @@
 }
 
 .section-input:hover:not(.section-main) > .section-input__arrow {
-     filter: none;
- }
+    filter: none;
+}
 
 .section-input:hover > .section-input__group,
 .section-input:hover > .section-input__group--root {
