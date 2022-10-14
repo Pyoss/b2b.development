@@ -17,7 +17,10 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
         <div class="slider__track owl-carousel">
 
             <? foreach ($arResult['BANNERS'] as $item) {
-                ?><div class="slider__slide" style="background-image: url(<?=CFile::GetPath($item['DETAIL_PICTURE'])?>)"></div><?
+                ?>
+              <a href="<?=$item['HREF']?>">
+            <div class="slider__slide"
+                 style="background-image: url(<?= CFile::GetPath($item['DETAIL_PICTURE']) ?>)"></div></a><?
             } ?>
         </div>
     </div>
