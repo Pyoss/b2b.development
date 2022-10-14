@@ -47,7 +47,7 @@ Asset::getInstance()->addJs(SITE_TEMPLATE_PATH . "/js/product_list.js");
                         ),
                         $component
                     ); ?>
-                    <input id="section-input" name="sections" type="hidden">
+                    <input id="section-input" name="sections" type="hidden" value="<?=$arResult['CURRENT_SECTION_ID'] ?: ''?>">
                 </div>
                 <div class="filter-item">
                     <label class="filter-item__label">Бренд</label>
