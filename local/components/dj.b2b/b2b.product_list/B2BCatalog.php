@@ -215,7 +215,7 @@ class B2BCatalog
     function addSectionProducts(&$section): bool
     {
         $chosen_products = [];
-        $arFilter = array('SECTION_ID' => $section['ID'], 'ACTIVE' => 'Y', 'ID' => $this->arElementsFilter);
+        $arFilter = array('IBLOCK_ID' => $this -> iblock ,'SECTION_ID' => $section['ID'], 'ACTIVE' => 'Y', 'ID' => $this->arElementsFilter);
         $sectionCount = \CIBlockElement::GetList(false, $arFilter, array());
         if ($sectionCount < $this->element_offset) {
             $this->element_offset -= $sectionCount;
