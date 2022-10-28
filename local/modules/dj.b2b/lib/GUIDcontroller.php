@@ -65,4 +65,12 @@ class GUIDController
             "select" => array("*")
         ));
     }
+
+    public function existsId($ID){
+        $rsSelect = $this -> entity_data_class::getList(array(
+            "select" => array("*"),
+            "filter" => array("UF_ELEMENT_ID" => $ID)
+        ));
+        return boolval($rsSelect->Fetch());
+    }
 }

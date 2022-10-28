@@ -9,6 +9,9 @@ use Bitrix\Iblock\ElementPropertyTable;
 use Bitrix\Iblock\PropertyEnumerationTable;
 use Bitrix\Iblock\PropertyTable;
 use CIBlockElement;
+use DJ\B2B\GUIDController;
+
+
 
 class B2BCatalog
 {
@@ -37,6 +40,7 @@ class B2BCatalog
     {
         \CModule::IncludeModule("sale");
         \CModule::IncludeModule('iblock');
+        \CModule::IncludeModule('dj.b2b');
 
         if (!$_GET['order']) {
             $basket = Basket::loadItemsForFUser(\Bitrix\Sale\Fuser::getId(),
@@ -214,6 +218,7 @@ class B2BCatalog
     private
     function addSectionProducts(&$section): bool
     {
+        $guidController = new GUIDController();
         $chosen_products = [];
         $arFilter = array('IBLOCK_ID' => $this -> iblock ,'SECTION_ID' => $section['ID'], 'ACTIVE' => 'Y', 'ID' => $this->arElementsFilter);
         $sectionCount = \CIBlockElement::GetList(false, $arFilter, array());
@@ -232,7 +237,9 @@ class B2BCatalog
                 if (!$arProduct['DETAIL_PICTURE']) {
                     $arProduct['DETAIL_PICTURE'] = $arProduct['PREVIEW_PICTURE'];
                 }
-                if ($arProduct['PROPERTY_B2B_AVAILABLE_VALUE'] === 'Нет') {
+
+                //Скрываем итемы без отображения
+                if ($arProduct['PROPERTY_B2B_AVAILABLE_VALUE'] === 'Нет'){
                     $arProduct['HIDDEN'] = 'hidden';
                 }
                 if (\CCatalogSku::IsExistOffers($arProduct['ID'], 2)) {
@@ -273,7 +280,9 @@ class B2BCatalog
                         $this -> getDiscounts($arOffer);
                         $arOffer['PRICE_2'] = $arOffer['RETAIL_DISCOUNTS']['RESULT_PRICE']['DISCOUNT_PRICE'];
 
-                        if ($this -> offersFiltered && !in_array($arOffer['ID'], $this -> arOffersFilter)){
+                        //Скрываем итемы без привязки 1C или не подходящие по фильтру
+                        if ($this -> offersFiltered && !in_array($arOffer['ID'], $this -> arOffersFilter) ||
+                            !$guidController -> existsID($arOffer['ID']) ){
                             $arOffer['HIDDEN'] = 'hidden';
                         }
                         if ($this->query_data['main'] == 'basket') {
@@ -296,6 +305,12 @@ class B2BCatalog
                         $this->log_string($arOffer);
                     }
                 } else {
+
+                    //Скрываем итемы без привязка 1C
+                    if (!($guidController -> existsID($arProduct['ID']))){
+                        $arProduct['HIDDEN'] = 'hidden';
+                    }
+
                     $arProduct['OFFERS'] = 'N';
                     $this -> getDiscounts($arProduct);
 
