@@ -118,8 +118,6 @@ class Request
 
 
     private function HeaderAuth(&$headers){
-        $username = 'UsrSite';
-        $password = "UsrSite%705";
         $credentials = base64_encode("$username:$password");
         $headers[] = "Authorization: Basic {$credentials}";
         $headers[] = "Company_GUID:{$this->guid}";
